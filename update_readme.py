@@ -28,6 +28,18 @@ def get_problems_per_date():
             if current_date:
                 counts[current_date] += 1
 
+    # Also count staged (not yet committed) PROBLEM.md files
+    staged = subprocess.run(
+        ["git", "diff", "--cached", "--name-status"],
+        capture_output=True, text=True
+    )
+    for line in staged.stdout.splitlines():
+        if line.startswith("A\t") and line.endswith("PROBLEM.md"):
+            path = line[2:].strip()
+            match = DATE_PATTERN.search(path)
+            if match:
+                counts[match.group(0).upper()] += 1
+
     return counts
 
 def build_tracker_table(counts):
